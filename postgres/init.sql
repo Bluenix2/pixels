@@ -10,11 +10,17 @@ INSERT INTO cache_state DEFAULT VALUES ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS public.users (
 	user_id int8 NOT NULL,
-	key_salt text NOT NULL,
 	is_mod bool NOT NULL DEFAULT false,
 	is_banned bool NOT NULL DEFAULT false,
 	CONSTRAINT users_pk PRIMARY KEY (user_id)
 );
+
+CREATE TABLE IF NOT EXISTS public.jwt_auth {
+  user_id int8 NOT NULL,
+  key_salt text NOT NULL
+};
+
+ALTER TABLE public.jwt_auth ADD CONSTRAINT jwt_auth_fk FOREIGN KEY (user_id) REFERENCES users (user_id);
 
 CREATE TABLE IF NOT EXISTS  public.pixel_history (
 	pixel_history_id serial NOT NULL,

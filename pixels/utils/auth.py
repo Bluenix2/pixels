@@ -34,7 +34,10 @@ class JWTBearer(HTTPBearer):
         user_id, token_salt = token_data["id"], token_data["salt"]
 
         user_state = await request.state.db_conn.fetchrow(
-            "SELECT is_banned, is_mod, key_salt FROM users WHERE user_id = $1",
+            "SELECT users.is_banned, users.is_mod, jwt_auth.key_salt "
+            "FROM users "
+            "INNER JOIN jwt_auth "
+            "WHERE user_id = $1",
             int(user_id)
         )
 
@@ -65,11 +68,15 @@ async def reset_user_token(conn: Connection, user_id: str) -> str:
     is_mod = user_id in Server.MODS
 
     await conn.execute(
-        "INSERT INTO users (user_id, key_salt, is_mod) "
-        "VALUES ($1, $2, $3) "
-        "ON CONFLICT (user_id) DO UPDATE SET key_salt=$2",
+        "INSERT INTO users (user_id, is_mod) "
+        "VALUES ($1, $2) "
+        "ON CONFLICT (user_id) DO NOTHING;"
+        # JWT salt is stored seperately from the user row
+        "INSERT INTO jwt_auth (user_id, key_salt) "
+        "VALUES ($1, $3) "
+        "ON CONFLICT (user_id) DO UPDATE SET key_salt = $3;",
         int(user_id),
-        token_salt,
         is_mod,
+        token_salt,
     )
     return jwt.encode({"id": user_id, "salt": token_salt}, Server.JWT_SECRET, algorithm="HS256")
