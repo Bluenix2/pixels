@@ -6,7 +6,7 @@ from httpx import AsyncClient
 from starlette.responses import RedirectResponse
 
 from pixels.constants import Discord, Server
-from pixels.utils import auth
+from pixels.auth import jwt
 
 log = logging.getLogger(__name__)
 router = APIRouter(include_in_schema=False)
@@ -62,7 +62,7 @@ async def auth_callback(request: Request) -> Response:
             auth_token = (await client.post(Discord.TOKEN_URL, data=token_params, headers=token_headers)).json()
             auth_header = {"Authorization": f"Bearer {auth_token['access_token']}"}
             user = (await client.get(Discord.USER_URL, headers=auth_header)).json()
-            token = await auth.reset_user_token(request.state.db_conn, user["id"])
+            token = await jwt.reset_user_token(request.state.db_conn, user["id"])
     except KeyError:
         # Ensure that users don't land on the show_pixel page
         log.error(traceback.format_exc())

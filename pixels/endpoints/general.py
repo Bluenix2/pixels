@@ -7,7 +7,7 @@ from pixels.models import Message, Pixel
 from pixels.utils import auth, ratelimits
 
 log = logging.getLogger(__name__)
-router = APIRouter(tags=["Canvas Endpoints"], dependencies=[Depends(auth.JWTBearer())])
+router = APIRouter(tags=["Canvas Endpoints"], dependencies=[Depends(auth.UserAuth())])
 
 
 @router.get("/pixels", response_class=Response, responses={

@@ -22,6 +22,18 @@ CREATE TABLE IF NOT EXISTS public.jwt_auth {
 
 ALTER TABLE public.jwt_auth ADD CONSTRAINT jwt_auth_fk FOREIGN KEY (user_id) REFERENCES users (user_id);
 
+CREATE TABLE IF NOT EXISTS public.basic_auth {
+  user_id int8 NOT NULL,
+  username text NOT NULL UNIQUE,
+  pw_salt text NOT NULL,
+  password text NOT NULL  -- This is not plain-text
+}
+
+ALTER TABLE public.basic_auth ADD CONSTRAINT basic_auth_fk FOREIGN KEY (user_id) REFERENCES users (user_id);
+
+-- We lookup salt by username very often
+CREATE INDEX basic_auth_name_salt ON public.basic_auth (username, salt);
+
 CREATE TABLE IF NOT EXISTS  public.pixel_history (
 	pixel_history_id serial NOT NULL,
 	created_at TIMESTAMP NOT NULL DEFAULT now(),
